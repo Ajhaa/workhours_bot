@@ -11,6 +11,8 @@ enum Command {
     Help,
     #[command(description = "log hours from today.")]
     Log,
+    #[command(description = "echo arguments")]
+    Echo,
 }
 
 
@@ -19,6 +21,12 @@ async fn answer(
     command: Command,
     args: Vec<String>
 ) -> ResponseResult<()> {
+    let name = if let Some(x) = cx.update.from() {
+        &x.first_name
+    } else {
+        "anonymous"
+    };
+    
     match command {
         Command::Help => cx.answer(Command::descriptions()).send().await?,
         Command::Log => {
@@ -27,6 +35,13 @@ async fn answer(
                 cx.answer(format!("Logged {} hours", x)).send().await?
             } else {
                 cx.answer("expected hours as argument").send().await?
+            }
+        },
+        Command::Echo => {
+            if args.is_empty() {
+                cx.answer(format!("I'm afraid I can't do that, {}", name)).send().await?
+            } else {
+                cx.answer(args.join(" ")).send().await?
             }
         },
     };
@@ -53,7 +68,7 @@ async fn run() {
     dotenv().ok();
     let teloxide_token = env::var("TELOXIDE_TOKEN")
         .expect("TELOXIDE_TOKEN must be set");
-        
+
     teloxide::enable_logging!();
     log::info!("Starting workhours_bot!");
 
