@@ -1,5 +1,9 @@
 use teloxide::{prelude::*, utils::command::BotCommand};
 
+use dotenv::dotenv;
+use std::env;
+
+
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "These commands are supported:")]
 enum Command {
@@ -46,10 +50,14 @@ async fn main() {
 }
 
 async fn run() {
+    dotenv().ok();
+    let teloxide_token = env::var("TELOXIDE_TOKEN")
+        .expect("TELOXIDE_TOKEN must be set");
+        
     teloxide::enable_logging!();
     log::info!("Starting workhours_bot!");
 
-    let bot = Bot::from_env();
+    let bot = Bot::new(teloxide_token);
 
     Dispatcher::new(bot).messages_handler(handle_commands).dispatch().await;
 }
