@@ -1,3 +1,6 @@
+# faster rust docker build
+# https://benjamincongdon.me/blog/2019/12/04/Fast-Rust-Docker-Builds-with-cargo-vendor/
+
 FROM rust:1.41.0-stretch AS builder
 
 RUN USER=root cargo new --bin workhours_bot
@@ -13,5 +16,12 @@ COPY ./src ./src
 # build for release
 RUN rm ./target/release/deps/workhours_bot*
 RUN cargo build --release
+RUN cargo install --path . --verbose
 
-CMD ["./target/release/workhours_bot"]
+
+FROM debian:stable
+RUN apt-get update && apt-get install -y libssl-dev ca-certificates
+
+COPY --from=builder /usr/local/cargo/bin/workhours_bot /bin
+
+CMD ["workhours_bot"]
