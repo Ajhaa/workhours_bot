@@ -1,6 +1,9 @@
 name: Rust
 
-on: [push]
+on:
+  push:
+    branches: 
+      - master
 
 jobs:
   build:
@@ -12,4 +15,4 @@ jobs:
         name: ajhaa/workhours_bot
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}       
-      
+        cache: true # cache builds
