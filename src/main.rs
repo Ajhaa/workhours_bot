@@ -24,7 +24,7 @@ async fn answer(
     let name = if let Some(x) = cx.update.from() {
         &x.first_name
     } else {
-        "anonymous"
+        "Anonymous"
     };
     
     match command {
