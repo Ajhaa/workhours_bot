@@ -1,7 +1,15 @@
+#[macro_use]
+extern crate diesel;
+
+pub mod models;
+pub mod schema;
 use teloxide::{prelude::*, utils::command::BotCommand};
+use self::models::{LogEntry, NewLogEntry};
 
 use dotenv::dotenv;
 use std::env;
+use diesel::prelude::*;
+use diesel::pg::PgConnection;
 
 
 #[derive(BotCommand)]
@@ -13,25 +21,35 @@ enum Command {
     Log,
     #[command(description = "echo arguments")]
     Echo,
+    #[command(description = "find entries")]
+    Entries,
+
 }
 
 
 async fn answer(
     cx: DispatcherHandlerCx<Message>,
     command: Command,
-    args: Vec<String>
+    args: Vec<String>,
 ) -> ResponseResult<()> {
     let name = if let Some(x) = cx.update.from() {
         &x.first_name
     } else {
         "Anonymous"
     };
-    
+
+    let user_id = if let Some(x) = cx.update.from() {
+        x.id
+    } else {
+        0
+    };
+
     match command {
         Command::Help => cx.answer(Command::descriptions()).send().await?,
         Command::Log => {
             let hours = args.get(0);
             if let Some(x) = hours {
+                create_entry(user_id, x.parse::<f32>().unwrap());
                 cx.answer(format!("Logged {} hours", x)).send().await?
             } else {
                 cx.answer("expected hours as argument").send().await?
@@ -44,6 +62,11 @@ async fn answer(
                 cx.answer(args.join(" ")).send().await?
             }
         },
+        Command::Entries => {
+            let entries = get_entries();
+            let strs: Vec<String> = entries.into_iter().map(|x| format!("{} hours for user {}", x.hours, x.user_id)).collect();
+            cx.answer(strs.join("\n")).send().await?
+        }
     };
 
     Ok(())
@@ -75,4 +98,38 @@ async fn run() {
     let bot = Bot::new(teloxide_token);
 
     Dispatcher::new(bot).messages_handler(handle_commands).dispatch().await;
+}
+
+pub fn get_entries() -> Vec<LogEntry> {
+    use schema::log_entry::dsl::*;
+
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+
+    let connection = PgConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", database_url));
+
+    log_entry
+        .limit(5)
+        .load::<LogEntry>(&connection)
+        .expect("Error loading posts")
+}
+
+pub fn create_entry(user_id: i32, hours: f32) -> LogEntry {
+    use schema::log_entry;
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+
+    let conn = PgConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", database_url));
+
+    let new_entry = NewLogEntry {
+        hours: hours,
+        user_id: user_id,
+    };
+
+    diesel::insert_into(log_entry::table)
+        .values(&new_entry)
+        .get_result(&conn)
+        .expect("Error saving new entry")
 }

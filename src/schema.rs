@@ -1,8 +1,8 @@
 table! {
     log_entry (id) {
         id -> Int4,
-        hours -> Nullable<Int4>,
-        day -> Nullable<Date>,
-        user_id -> Nullable<Int4>,
+        hours -> Float4,
+        time -> Timestamp,
+        user_id -> Int4,
     }
 }
