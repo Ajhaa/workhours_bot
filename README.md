@@ -1,4 +1,6 @@
-# Telegram bot to track one's working hours
+# Workhours bot
+
+Telegram bot to track one's working hours.  
 Very work-in-progress, no real functionality yet.
 
 Set `TELOXIDE_TOKEN` to a valid telegram bot token to run the bot.  
