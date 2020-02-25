@@ -15,25 +15,33 @@ pub fn get_connection() -> PgConnection {
     conn
 }
 
-pub fn get_entries(uid: i32) -> Vec<LogEntry> {
-    use super::schema::log_entry::dsl::*;
+pub fn get_entries(uid: i32, project_name: &str) -> Vec<LogEntry> {
+    use super::schema::log_entry::dsl::{log_entry, user_id, project_id};
 
     let conn = get_connection();
+    let id = find_project_by_name(project_name).id;
 
     log_entry
         .filter(user_id.eq(uid))
+        .filter(project_id.eq(id))
         .load::<LogEntry>(&conn)
         .expect("Error loading posts")
 }
 
-pub fn create_entry(user_id: i32, hours: f32) -> LogEntry {
+pub fn create_entry(user_id: i32, hours: f32, project_name: Option<&String>) -> LogEntry {
     use super::schema::log_entry;
     let conn = get_connection();
+
+    let project_id = if let Some(project_name) = project_name {
+        Option::from(find_project_by_name(project_name).id)
+    } else {
+        Option::None
+    };
 
     let new_entry = NewLogEntry {
         hours: hours,
         user_id: user_id,
-        project_id: Option::None,
+        project_id: project_id,
     };
 
     diesel::insert_into(log_entry::table)

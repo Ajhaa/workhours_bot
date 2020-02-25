@@ -48,8 +48,9 @@ async fn answer(
         Command::Help => cx.answer(Command::descriptions()).send().await?,
         Command::Log => {
             let hours = args.get(0);
+            let project = args.get(1);
             if let Some(x) = hours {
-                create_entry(user_id, x.parse::<f32>().unwrap());
+                create_entry(user_id, x.parse::<f32>().unwrap(), project);
                 cx.answer(format!("Logged {} hours", x)).send().await?
             } else {
                 cx.answer("expected hours as argument").send().await?
@@ -63,7 +64,8 @@ async fn answer(
             }
         },
         Command::Entries => {
-            let entries = get_entries(user_id);
+            let project = args.get(0).unwrap();
+            let entries = get_entries(user_id, project);
             let strs: Vec<String> = entries
                 .into_iter()
                 .map(|x| format!("{} hours for user {} at {}", x.hours, x.user_id, x.time))
