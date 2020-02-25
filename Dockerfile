@@ -16,7 +16,7 @@ RUN cargo install --path . --verbose
 
 
 FROM debian:stable
-RUN apt-get update && apt-get install -y libssl-dev ca-certificates
+RUN apt-get update && apt-get install -y libssl-dev ca-certificates libpq-dev
 
 COPY --from=builder /usr/local/cargo/bin/workhours_bot /bin
 

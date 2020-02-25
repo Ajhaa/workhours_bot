@@ -3,14 +3,12 @@ extern crate diesel;
 
 pub mod models;
 pub mod schema;
+pub mod db;
 use teloxide::{prelude::*, utils::command::BotCommand};
-use self::models::{LogEntry, NewLogEntry};
+use self::db::{create_entry, get_entries};
 
 use dotenv::dotenv;
 use std::env;
-use diesel::prelude::*;
-use diesel::pg::PgConnection;
-
 
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "These commands are supported:")]
@@ -25,7 +23,6 @@ enum Command {
     Entries,
 
 }
-
 
 async fn answer(
     cx: DispatcherHandlerCx<Message>,
@@ -73,6 +70,8 @@ async fn answer(
 }
 
 async fn handle_commands(rx: DispatcherHandlerRx<Message>) {
+    
+    
     // Only iterate through commands in a proper format:
     rx.commands::<Command>()
         // Execute all incoming commands concurrently:
@@ -98,38 +97,4 @@ async fn run() {
     let bot = Bot::new(teloxide_token);
 
     Dispatcher::new(bot).messages_handler(handle_commands).dispatch().await;
-}
-
-pub fn get_entries() -> Vec<LogEntry> {
-    use schema::log_entry::dsl::*;
-
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-
-    let connection = PgConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", database_url));
-
-    log_entry
-        .limit(5)
-        .load::<LogEntry>(&connection)
-        .expect("Error loading posts")
-}
-
-pub fn create_entry(user_id: i32, hours: f32) -> LogEntry {
-    use schema::log_entry;
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-
-    let conn = PgConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", database_url));
-
-    let new_entry = NewLogEntry {
-        hours: hours,
-        user_id: user_id,
-    };
-
-    diesel::insert_into(log_entry::table)
-        .values(&new_entry)
-        .get_result(&conn)
-        .expect("Error saving new entry")
 }
