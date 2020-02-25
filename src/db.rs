@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use diesel::pg::PgConnection;
 
 
-fn get_connection() -> PgConnection {
+pub fn get_connection() -> PgConnection {
   let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
 
@@ -42,16 +42,37 @@ pub fn create_entry(user_id: i32, hours: f32) -> LogEntry {
         .expect("Error saving new entry")
 }
 
-pub fn create_project(name: &str) -> Project {
+pub fn create_project(name: &str, user_id: i32) -> Project {
     use super::schema::project;
     let conn = get_connection();
 
     let new_project = NewProject {
-        name: name
+        name: name,
+        user_id: user_id,
     };
 
     diesel::insert_into(project::table)
         .values(&new_project)
         .get_result(&conn)
         .expect("Error saving new project")
+}
+
+pub fn find_project_by_name(project_name: &str) -> Project {
+    use super::schema::project::dsl::*;
+    let conn = get_connection();
+
+    project
+        .filter(name.eq(project_name))
+        .first::<Project>(&conn)
+        .expect("Could not find project")
+}
+
+pub fn get_projects(uid: i32) -> Vec<Project> {
+    use super::schema::project::dsl::*;
+    let conn = get_connection();
+
+    project
+        .filter(user_id.eq(uid))
+        .load::<Project>(&conn)
+        .expect("Error loading projects")
 }

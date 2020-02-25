@@ -1,3 +1,4 @@
 /target
 /volumes/pg-data
 .env
+migrate_server.sh

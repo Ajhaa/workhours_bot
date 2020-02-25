@@ -5,7 +5,7 @@ pub mod models;
 pub mod schema;
 pub mod db;
 use teloxide::{prelude::*, utils::command::BotCommand};
-use self::db::{create_entry, get_entries};
+use self::db::*;
 
 use dotenv::dotenv;
 use std::env;
@@ -15,13 +15,16 @@ use std::env;
 enum Command {
     #[command(description = "display this text.")]
     Help,
-    #[command(description = "log hours from today.")]
+    #[command(description = "/log <hours> log hours from today.")]
     Log,
     #[command(description = "echo arguments")]
     Echo,
     #[command(description = "find entries")]
     Entries,
-
+    #[command(description = "/project <name> - create a new project")]
+    Project,
+    #[command(description = "list your projects")]
+    Projects,
 }
 
 async fn answer(
@@ -66,6 +69,23 @@ async fn answer(
                 .map(|x| format!("{} hours for user {} at {}", x.hours, x.user_id, x.time))
                 .collect();
             cx.answer(strs.join("\n")).send().await?
+        },
+        Command::Project => {
+            let name = args.get(0);
+            if let Some(x) = name {
+                create_project(x, user_id);
+                cx.answer(format!("Created project {}", x)).send().await?
+            } else {
+                cx.answer("Cannot create a group without a name").send().await?
+            }
+        },
+        Command::Projects => {
+            let projects = get_projects(user_id);
+            let strs: Vec<String> = projects
+                .into_iter()
+                .map(|x| format!("{}", x.name))
+                .collect();
+            cx.answer(strs.join("\n")).send().await?
         }
     };
 
@@ -73,8 +93,6 @@ async fn answer(
 }
 
 async fn handle_commands(rx: DispatcherHandlerRx<Message>) {
-    
-    
     // Only iterate through commands in a proper format:
     rx.commands::<Command>()
         // Execute all incoming commands concurrently:
@@ -91,6 +109,7 @@ async fn main() {
 
 async fn run() {
     dotenv().ok();
+
     let teloxide_token = env::var("TELOXIDE_TOKEN")
         .expect("TELOXIDE_TOKEN must be set");
 

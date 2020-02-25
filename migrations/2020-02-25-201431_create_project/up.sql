@@ -1,7 +1,7 @@
 -- Your SQL goes here
 CREATE TABLE project (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 
 ALTER TABLE log_entry

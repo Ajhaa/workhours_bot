@@ -22,10 +22,12 @@ pub struct LogEntry {
 #[table_name="project"]
 pub struct NewProject<'a> {
     pub name: &'a str,
+    pub user_id: i32,
 }
 
 #[derive(Queryable)]
 pub struct Project {
     pub id: i32,
     pub name: String,
+    pub user_id: i32,
 }

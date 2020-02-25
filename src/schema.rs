@@ -12,6 +12,7 @@ table! {
     project (id) {
         id -> Int4,
         name -> Text,
+        user_id -> Int4,
     }
 }
 
