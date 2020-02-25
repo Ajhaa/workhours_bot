@@ -38,7 +38,7 @@ async fn answer(
     let user_id = if let Some(x) = cx.update.from() {
         x.id
     } else {
-        0
+        -1
     };
 
     match command {
@@ -60,8 +60,11 @@ async fn answer(
             }
         },
         Command::Entries => {
-            let entries = get_entries();
-            let strs: Vec<String> = entries.into_iter().map(|x| format!("{} hours for user {}", x.hours, x.user_id)).collect();
+            let entries = get_entries(user_id);
+            let strs: Vec<String> = entries
+                .into_iter()
+                .map(|x| format!("{} hours for user {} at {}", x.hours, x.user_id, x.time))
+                .collect();
             cx.answer(strs.join("\n")).send().await?
         }
     };

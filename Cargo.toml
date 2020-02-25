@@ -13,7 +13,8 @@ path = "src/main.rs"
 [dependencies]
 teloxide = "0.1.0"
 dotenv = "0.15.0"
-diesel = { version = "1.0.0", features = ["postgres"] }
+diesel = { version = "1.0.0", features = ["postgres", "chrono"] }
+chrono = "0.4.0"
 futures = "0.3.4"
 log = "0.4.8"
 tokio = "0.2.11"

@@ -15,12 +15,13 @@ fn get_connection() -> PgConnection {
     conn
 }
 
-pub fn get_entries() -> Vec<LogEntry> {
+pub fn get_entries(uid: i32) -> Vec<LogEntry> {
     use super::schema::log_entry::dsl::*;
 
     let conn = get_connection();
 
     log_entry
+        .filter(user_id.eq(uid))
         .load::<LogEntry>(&conn)
         .expect("Error loading posts")
 }
