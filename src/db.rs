@@ -1,4 +1,4 @@
-use super::models::{LogEntry, NewLogEntry};
+use super::models::*;
 
 use std::env;
 use diesel::prelude::*;
@@ -33,10 +33,25 @@ pub fn create_entry(user_id: i32, hours: f32) -> LogEntry {
     let new_entry = NewLogEntry {
         hours: hours,
         user_id: user_id,
+        project_id: Option::None,
     };
 
     diesel::insert_into(log_entry::table)
         .values(&new_entry)
         .get_result(&conn)
         .expect("Error saving new entry")
+}
+
+pub fn create_project(name: &str) -> Project {
+    use super::schema::project;
+    let conn = get_connection();
+
+    let new_project = NewProject {
+        name: name
+    };
+
+    diesel::insert_into(project::table)
+        .values(&new_project)
+        .get_result(&conn)
+        .expect("Error saving new project")
 }

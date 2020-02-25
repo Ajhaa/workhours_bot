@@ -1,4 +1,4 @@
-use super::schema::log_entry;
+use super::schema::*;
 use chrono::{NaiveDateTime};
 
 #[derive(Insertable)]
@@ -6,6 +6,7 @@ use chrono::{NaiveDateTime};
 pub struct NewLogEntry {
     pub hours: f32,
     pub user_id: i32,
+    pub project_id: Option<i32>,
 }
 
 #[derive(Queryable)]
@@ -14,4 +15,17 @@ pub struct LogEntry {
     pub hours: f32,
     pub time: NaiveDateTime,
     pub user_id: i32,
+    pub project_id: Option<i32>,
+}
+
+#[derive(Insertable)]
+#[table_name="project"]
+pub struct NewProject<'a> {
+    pub name: &'a str,
+}
+
+#[derive(Queryable)]
+pub struct Project {
+    pub id: i32,
+    pub name: String,
 }
