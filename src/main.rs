@@ -52,14 +52,7 @@ async fn answer(
     match command {
         Command::Help => cx.answer(Command::descriptions()).send().await?,
         Command::Log => {
-            let hours = args.get(0);
-            let project = args.get(1);
-            if let Some(x) = hours {
-                create_entry(user_id, x.parse::<f32>().unwrap(), project);
-                cx.answer(format!("Logged {} hours", x)).send().await?
-            } else {
-                cx.answer("expected hours as argument").send().await?
-            }
+            handle_log(user_id, cx, args).await?
         },
         Command::Echo => {
             if args.is_empty() {
@@ -110,7 +103,7 @@ async fn answer(
 
 async fn handle_commands(rx: DispatcherHandlerRx<Message>) {
     // Only iterate through commands in a proper format:
-    rx.commands::<Command>()
+    rx.commands::<Command, &str>("workhours")
         // Execute all incoming commands concurrently:
         .for_each_concurrent(None, |(cx, command, args)| async move {
             answer(cx, command, args).await.log_on_error().await;
@@ -136,4 +129,22 @@ async fn run() {
     let bot = Bot::new(teloxide_token);
 
     Dispatcher::new(bot).messages_handler(handle_commands).dispatch().await;
+}
+
+async fn handle_log(
+    user_id: i32, 
+    cx: DispatcherHandlerCx<Message>, 
+    args: Vec<String>
+) -> Result<Message, RequestError> {
+    if args.len() == 0 {
+        return cx.answer("usage: /log <hours> <project>").send().await;
+    }
+    let hours = args.get(0);
+    let project = args.get(1);
+    if let Some(x) = hours {
+        create_entry(user_id, x.parse::<f32>().unwrap(), project);
+        cx.answer(format!("Logged {} hours", x)).send().await
+    } else {
+        cx.answer("expected hours as argument").send().await
+    }
 }
