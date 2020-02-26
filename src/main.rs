@@ -4,11 +4,14 @@ extern crate diesel;
 pub mod models;
 pub mod schema;
 pub mod db;
+
 use teloxide::{prelude::*, utils::command::BotCommand};
-use self::db::*;
+use chrono::Duration;
 
 use dotenv::dotenv;
 use std::env;
+
+use self::db::*;
 
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "These commands are supported:")]
@@ -68,7 +71,7 @@ async fn answer(
             let entries = get_entries(user_id, project);
             let strs: Vec<String> = entries
                 .into_iter()
-                .map(|x| format!("{} hours for user {} at {}", x.hours, x.user_id, x.time))
+                .map(|x| format!("{} hours at {}", x.hours, x.time + Duration::hours(2)))
                 .collect();
             cx.answer(strs.join("\n")).send().await?
         },
