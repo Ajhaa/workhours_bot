@@ -1,4 +1,5 @@
 use super::schema::*;
+use diesel::sql_types::*;
 use chrono::{NaiveDateTime};
 
 #[derive(Insertable)]
@@ -16,6 +17,14 @@ pub struct LogEntry {
     pub time: NaiveDateTime,
     pub user_id: i32,
     pub project_id: Option<i32>,
+}
+
+#[derive(QueryableByName)]
+pub struct ProjectHours {
+    #[sql_type="Text"]
+    pub name: String,
+    #[sql_type="Float"]
+    pub hours: f32,
 }
 
 #[derive(Insertable)]

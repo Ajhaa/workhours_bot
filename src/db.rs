@@ -4,6 +4,8 @@ use std::env;
 use diesel::prelude::*;
 use diesel::dsl::sum;
 use diesel::pg::PgConnection;
+use diesel::sql_query;
+use diesel::sql_types::Integer;
 
 
 pub fn get_connection() -> PgConnection {
@@ -86,7 +88,7 @@ pub fn get_projects(uid: i32) -> Vec<Project> {
         .expect("Error loading projects")
 }
 
-pub fn count_hours_by_project(project_name: &str) -> Option<f32> {
+pub fn get_project_hours(project_name: &str) -> Option<f32> {
     use super::schema::log_entry::dsl::*;
     let conn = get_connection();
 
@@ -97,4 +99,13 @@ pub fn count_hours_by_project(project_name: &str) -> Option<f32> {
         .select(sum(hours))
         .first(&conn)
         .expect("could not sum hours")
+}
+
+pub fn hours_by_project(uid: i32) -> Vec<ProjectHours>{
+    let conn = get_connection();
+
+    sql_query(include_str!("../queries/project_hours.sql"))
+        .bind::<Integer, _>(uid)
+        .load::<ProjectHours>(&conn)
+        .expect("Could not find hours")
 }

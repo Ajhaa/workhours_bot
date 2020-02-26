@@ -29,7 +29,7 @@ enum Command {
     #[command(description = "list your projects")]
     Projects,
     #[command(description = "get total hours from single project")]
-    Hours, 
+    Hours,
 }
 
 async fn answer(
@@ -87,17 +87,17 @@ async fn answer(
             }
         },
         Command::Projects => {
-            let projects = get_projects(user_id);
+            let projects = hours_by_project(user_id);
             let strs: Vec<String> = projects
                 .into_iter()
-                .map(|x| format!("{}", x.name))
+                .map(|x| format!("{} {}", x.name, x.hours))
                 .collect();
             cx.answer(strs.join("\n")).send().await?
         },
         Command::Hours => {
             let name = args.get(0);
             if let Some(x) = name {
-                let hours = count_hours_by_project(x).unwrap();
+                let hours = get_project_hours(x).unwrap();
                 cx.answer(format!("{} hours in project {}", hours, x)).send().await?
             } else {
                 cx.answer("Needs project name as argument").send().await?
@@ -129,6 +129,7 @@ async fn run() {
     let teloxide_token = env::var("TELOXIDE_TOKEN")
         .expect("TELOXIDE_TOKEN must be set");
 
+    // hours_by_project(0);    
     teloxide::enable_logging!();
     log::info!("Starting workhours_bot!");
 
