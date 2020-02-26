@@ -28,6 +28,8 @@ enum Command {
     Project,
     #[command(description = "list your projects")]
     Projects,
+    #[command(description = "get total hours from single project")]
+    Hours, 
 }
 
 async fn answer(
@@ -91,6 +93,15 @@ async fn answer(
                 .map(|x| format!("{}", x.name))
                 .collect();
             cx.answer(strs.join("\n")).send().await?
+        },
+        Command::Hours => {
+            let name = args.get(0);
+            if let Some(x) = name {
+                let hours = count_hours_by_project(x).unwrap();
+                cx.answer(format!("{} hours in project {}", hours, x)).send().await?
+            } else {
+                cx.answer("Needs project name as argument").send().await?
+            }
         }
     };
 

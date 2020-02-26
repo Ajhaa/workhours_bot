@@ -2,6 +2,7 @@ use super::models::*;
 
 use std::env;
 use diesel::prelude::*;
+use diesel::dsl::sum;
 use diesel::pg::PgConnection;
 
 
@@ -83,4 +84,17 @@ pub fn get_projects(uid: i32) -> Vec<Project> {
         .filter(user_id.eq(uid))
         .load::<Project>(&conn)
         .expect("Error loading projects")
+}
+
+pub fn count_hours_by_project(project_name: &str) -> Option<f32> {
+    use super::schema::log_entry::dsl::*;
+    let conn = get_connection();
+
+    let p_id = find_project_by_name(project_name).id;
+
+    log_entry
+        .filter(project_id.eq(p_id))
+        .select(sum(hours))
+        .first(&conn)
+        .expect("could not sum hours")
 }
