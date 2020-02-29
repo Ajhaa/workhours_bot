@@ -2,3 +2,4 @@
 Dockerfile
 /volumes
 .env
+migrate-server.sh

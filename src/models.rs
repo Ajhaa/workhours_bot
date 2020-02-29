@@ -1,5 +1,5 @@
 use super::schema::*;
-use diesel::sql_types::*;
+use diesel::sql_types::{Float, Text};
 use chrono::{NaiveDateTime};
 
 #[derive(Insertable)]
